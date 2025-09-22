@@ -497,7 +497,7 @@ export default function ClientPage() {
                   Acesse a página <code>/server</code>
                 </li>
                 <li>Configure o número de abelhas e URL alvo</li>
-                <li>Clique em "Iniciar Teste"</li>
+                <li>Clique em "Soltar abelhas"</li>
               </ol>
             </div>
           </div>

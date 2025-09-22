@@ -215,7 +215,7 @@ export default function ServerPage() {
                 disabled={isRunning || !isConnected || !targetUrl}
                 className={styles.startButton}
               >
-                ▶️ Iniciar Teste
+                Soltar abelhas
               </button>
 
               <button
@@ -223,11 +223,11 @@ export default function ServerPage() {
                 disabled={!isRunning}
                 className={styles.stopButton}
               >
-                ⏹️ Parar Teste
+                Matar abelhas
               </button>
 
               <button onClick={resetTest} className={styles.resetButton}>
-                🔄 Resetar
+                Resetar
               </button>
             </div>
           </div>
