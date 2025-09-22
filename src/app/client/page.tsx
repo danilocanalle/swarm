@@ -16,6 +16,7 @@ interface BeeRequest {
 interface TestConfig {
   beeCount: number;
   targetUrl: string;
+  timeoutBetweenRequests?: number;
 }
 
 export default function ClientPage() {
@@ -149,20 +150,22 @@ export default function ClientPage() {
     abortControllerRef.current = new AbortController();
 
     // Iniciar execução das requisições com delay escalonado
-    executeRequests(newBees, config.targetUrl);
+    executeRequests(newBees, config);
   };
 
-  const executeRequests = async (bees: BeeRequest[], targetUrl: string) => {
+  const executeRequests = async (bees: BeeRequest[], config: TestConfig) => {
     try {
-      // Executar todas as requisições com pequenos delays para simular um ataque real
-      const promises = bees.map(
-        (bee, index) =>
-          executeRequest(
-            bee,
-            targetUrl,
-            index * 100,
-            abortControllerRef.current?.signal
-          ) // 100ms de delay entre cada requisição
+      // Usar o timeout configurado pelo servidor, ou 100ms como padrão
+      const delayBetweenRequests = config.timeoutBetweenRequests || 100;
+
+      // Executar todas as requisições com delays configurados
+      const promises = bees.map((bee, index) =>
+        executeRequest(
+          bee,
+          config.targetUrl,
+          index * delayBetweenRequests,
+          abortControllerRef.current?.signal
+        )
       );
 
       await Promise.all(promises);
@@ -512,6 +515,10 @@ export default function ClientPage() {
                 <div className={styles.configItem}>
                   <label>URL Alvo:</label>
                   <span>{testConfig.targetUrl}</span>
+                </div>
+                <div className={styles.configItem}>
+                  <label>Timeout entre Requisições:</label>
+                  <span>{testConfig.timeoutBetweenRequests || 100}ms</span>
                 </div>
                 <div className={styles.configItem}>
                   <label>Status:</label>

@@ -108,6 +108,13 @@
           }
         }
       }
+
+      small {
+        font-size: $font-size-small;
+        color: $gray-medium;
+        font-style: italic;
+        margin-top: 4px;
+      }
     }
 
     .controls {

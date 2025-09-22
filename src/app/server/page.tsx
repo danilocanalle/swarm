@@ -18,6 +18,8 @@ export default function ServerPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [beeCount, setBeeCount] = useState<number>(10);
   const [targetUrl, setTargetUrl] = useState<string>("");
+  const [timeoutBetweenRequests, setTimeoutBetweenRequests] =
+    useState<number>(100);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -55,8 +57,15 @@ export default function ServerPage() {
   }, []);
 
   const startTest = async () => {
-    if (!isConnected || !targetUrl || beeCount <= 0) {
-      alert("Por favor, preencha todos os campos e verifique a conexão");
+    if (
+      !isConnected ||
+      !targetUrl ||
+      beeCount <= 0 ||
+      timeoutBetweenRequests < 0
+    ) {
+      alert(
+        "Por favor, preencha todos os campos corretamente e verifique a conexão"
+      );
       return;
     }
 
@@ -72,6 +81,7 @@ export default function ServerPage() {
           config: {
             beeCount,
             targetUrl,
+            timeoutBetweenRequests,
           },
         }),
       });
@@ -175,6 +185,28 @@ export default function ServerPage() {
                 placeholder="https://exemplo.com/api/endpoint"
                 disabled={isRunning}
               />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="timeoutBetweenRequests">
+                Timeout entre Requisições (ms):
+              </label>
+              <input
+                id="timeoutBetweenRequests"
+                type="number"
+                value={timeoutBetweenRequests}
+                onChange={(e) =>
+                  setTimeoutBetweenRequests(Number(e.target.value))
+                }
+                min="0"
+                max="10000"
+                step="50"
+                disabled={isRunning}
+                placeholder="100"
+              />
+              <small>
+                Delay em milissegundos entre cada requisição do cliente
+              </small>
             </div>
 
             <div className={styles.controls}>
