@@ -1,15 +1,11 @@
 import { NextRequest } from "next/server";
-import crypto from "crypto";
-
-// Senha fixa (em produção deveria estar em variável de ambiente)
-const ADMIN_PASSWORD = "1234";
-
-// Armazenar tokens válidos (em produção deveria estar em Redis/DB)
-const validTokens = new Set<string>();
-
-function generateToken(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
+import {
+  generateToken,
+  isValidToken,
+  addToken,
+  removeToken,
+  validatePassword,
+} from "./utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,9 +14,9 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case "login":
-        if (password === ADMIN_PASSWORD) {
+        if (validatePassword(password)) {
           const token = generateToken();
-          validTokens.add(token);
+          addToken(token);
 
           console.log(`Login bem-sucedido. Token gerado: ${token}`);
 
@@ -42,7 +38,7 @@ export async function POST(request: NextRequest) {
 
       case "validate":
         const { token } = body;
-        const isValid = validTokens.has(token);
+        const isValid = isValidToken(token);
 
         if (isValid) {
           return Response.json({
@@ -62,7 +58,7 @@ export async function POST(request: NextRequest) {
       case "logout":
         const { token: logoutToken } = body;
         if (logoutToken) {
-          validTokens.delete(logoutToken);
+          removeToken(logoutToken);
           console.log(`Logout realizado. Token removido: ${logoutToken}`);
         }
 
@@ -90,9 +86,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Função auxiliar para validar token (para uso em outras APIs)
-export function isValidToken(token: string): boolean {
-  return validTokens.has(token);
 }

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { connectedClients, broadcastToAllClients } from "../sse/route";
-import { isValidToken } from "../auth/route";
+import { connectedClients, broadcastToAllClients } from "../sse/utils";
+import { isValidToken } from "../auth/utils";
 
 // Middleware de autenticação
 function validateAuth(request: NextRequest) {
