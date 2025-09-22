@@ -1,94 +1,62 @@
-import Image from "next/image";
+import Link from "next/link";
 import styles from "./page.module.css";
+import "./globals.css";
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+        <div className={styles.header}>
+          <h1 className={styles.title}>🐝 Swarm</h1>
+          <p className={styles.subtitle}>
+            Sistema de Teste de Carga Distribuído
+          </p>
+        </div>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+        <div className={styles.description}>
+          <p>
+            O Swarm permite coordenar múltiplos clientes para realizar
+            requisições simultâneas contra uma URL alvo, proporcionando testes
+            de carga distribuídos eficientes.
+          </p>
+        </div>
+
+        <div className={styles.cards}>
+          <Link href="/server" className={styles.card}>
+            <h2>🖥️ Servidor de Controle</h2>
+            <p>
+              Interface para gerenciar e monitorar os testes de carga. Configure
+              parâmetros, visualize clientes conectados e acompanhe o progresso
+              em tempo real.
+            </p>
+            <span className={styles.cardAction}>Acessar Servidor →</span>
+          </Link>
+
+          <Link href="/client" className={styles.card}>
+            <h2>🔗 Cliente de Execução</h2>
+            <p>
+              Interface do cliente que se conecta ao servidor via EventSource
+              (SSE) e executa as requisições conforme comandos recebidos.
+            </p>
+            <span className={styles.cardAction}>Conectar Cliente →</span>
+          </Link>
+        </div>
+
+        <div className={styles.features}>
+          <h3>✨ Funcionalidades</h3>
+          <ul>
+            <li>📊 Monitoramento de clientes em tempo real</li>
+            <li>🐝 Configuração flexível de "abelhas" (requisições)</li>
+            <li>🎯 Teste de qualquer URL alvo</li>
+            <li>📈 Feedback visual instantâneo</li>
+            <li>� Comunicação via EventSource (Server-Sent Events)</li>
+            <li>🔄 Reconexão automática em caso de falha</li>
+          </ul>
         </div>
       </main>
+
       <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+        <p>Desenvolvido por Danilo Canalle | MIT License</p>
       </footer>
     </div>
   );

@@ -9,15 +9,15 @@ O projeto é uma aplicação Next.js única com duas páginas principais:
 ### `/server` - Página do Servidor de Controle
 
 - Interface web para controle e monitoramento
-- Gerenciamento de conexões WebSocket com clientes
+- Gerenciamento de conexões EventSource (SSE) com clientes
 - Configuração de parâmetros de teste
 - Visualização em tempo real do status dos clientes
 
 ### `/client` - Página do Cliente de Execução
 
-- Interface que se conecta ao servidor via WebSocket
+- Interface que se conecta ao servidor via EventSource (Server-Sent Events)
 - Executa requisições HTTP conforme comandos do servidor
-- Relatório de status (sucesso/erro) de volta ao servidor
+- Relatório de status (sucesso/erro) de volta ao servidor via HTTP POST
 
 ## ✨ Funcionalidades
 
@@ -31,11 +31,12 @@ O projeto é uma aplicação Next.js única com duas páginas principais:
 
 ### Cliente
 
-- 🔌 **Conexão WebSocket**: Aguarda e mantém conexão com o servidor
+- � **Conexão EventSource**: Aguarda e mantém conexão SSE com o servidor
 - 🎨 **Interface Dinâmica**: Layout muda após estabelecer conexão
 - 📦 **Visualização de Tarefas**: Boxes representando cada requisição a ser feita
 - ⏳ **Estados Visuais**: Loading, sucesso e erro para cada requisição
-- 📡 **Comunicação Bidirecional**: Envia feedback para o servidor
+- � **Comunicação Híbrida**: Recebe comandos via SSE, envia feedback via HTTP POST
+- 🔁 **Reconexão Automática**: Reconecta automaticamente se a conexão cair
 
 ## 🚀 Como Executar
 
@@ -59,22 +60,47 @@ Acesse as páginas:
 ## 🔧 Tecnologias Utilizadas
 
 - **Frontend**: Next.js, React, TypeScript
-- **Comunicação**: WebSockets
-- **Styling**: CSS Modules / Tailwind CSS
+- **Comunicação**: EventSource (Server-Sent Events) + HTTP POST
+- **Styling**: SCSS Modules
 - **Build**: Next.js Build System
+
+## 🏗️ Arquitetura de Comunicação
+
+O projeto utiliza uma arquitetura híbrida para comunicação cliente-servidor:
+
+### 📡 EventSource (Server-Sent Events)
+
+- **Servidor → Cliente**: Comandos de controle (`start_test`, `stop_test`, `reset_test`)
+- **Vantagens**:
+  - Reconexão automática
+  - Simples de implementar
+  - Suporte nativo do navegador
+  - Ideal para comandos unidirecionais
+
+### 🔄 HTTP POST
+
+- **Cliente → Servidor**: Atualizações de status e estatísticas
+- **Vantagens**:
+  - Controle fino sobre quando enviar dados
+  - Melhor para dados estruturados
+  - Não mantém conexão aberta constantemente
+
+Esta combinação oferece o melhor dos dois mundos: simplicidade do SSE para comandos e flexibilidade do HTTP para atualizações.
 
 ## 📋 Fluxo de Funcionamento
 
 1. **Inicialização**: Aplicação Next.js é iniciada
 2. **Acesso às Páginas**: Usuários acessam `/server` e `/client` em navegadores diferentes
-3. **Conexão**: Clientes se conectam ao servidor via WebSocket
+3. **Conexão**: Clientes se conectam ao servidor via EventSource (SSE)
 4. **Configuração**: Operador define parâmetros na página do servidor:
    - Número de "abelhas" (requisições) por cliente
    - URL alvo para teste
-5. **Distribuição**: Servidor envia configuração para todos os clientes conectados
-6. **Execução**: Servidor dispara comando de início
-7. **Monitoramento**: Interface mostra progresso em tempo real
-8. **Relatório**: Resultados consolidados são exibidos
+   - Timeout entre requisições
+5. **Distribuição**: Servidor envia configuração para todos os clientes conectados via SSE
+6. **Execução**: Servidor dispara comando de início via SSE
+7. **Monitoramento**: Clientes enviam atualizações de progresso via HTTP POST
+8. **Visualização**: Interface mostra progresso em tempo real
+9. **Relatório**: Resultados consolidados são exibidos
 
 ## 🎯 Casos de Uso
 
@@ -88,10 +114,12 @@ Acesse as páginas:
 - [x] Criação da página `/server` com interface de controle
 - [x] Criação da página `/client` com interface de execução
 - [x] Implementação do servidor (API Routes)
-- [x] Sistema de comunicação entre páginas via WebSocket
+- [x] Sistema de comunicação entre páginas via EventSource + HTTP POST
 - [x] Interface do cliente com estados visuais
-- [ ] Sistema de relatórios e métricas
+- [x] Arquitetura híbrida de comunicação (SSE + HTTP)
+- [ ] Sistema de relatórios e métricas avançadas
 - [ ] Configurações avançadas de teste
+- [ ] Dashboard de histórico de testes
 
 ---
 
