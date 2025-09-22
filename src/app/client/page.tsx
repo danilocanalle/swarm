@@ -16,7 +16,7 @@ interface BeeRequest {
 interface TestConfig {
   beeCount: number;
   targetUrl: string;
-  timeoutBetweenRequests?: number;
+  timeoutBetweenRequests: number;
 }
 
 export default function ClientPage() {
@@ -122,6 +122,7 @@ export default function ClientPage() {
 
   const startTest = (config: TestConfig) => {
     console.log("Iniciando teste com config:", config);
+
     setTestConfig(config);
     setIsRunning(true);
 
@@ -153,10 +154,28 @@ export default function ClientPage() {
     executeRequests(newBees, config);
   };
 
+  useEffect(() => {
+    // Enviar atualizações a cada 10% do progresso
+    if (stats.total > 0) {
+      const progressPercentage = (stats.completed / stats.total) * 100;
+      const currentStep = Math.floor(progressPercentage / 10) * 10;
+      const previousCompleted = stats.completed - 1;
+      const previousPercentage =
+        previousCompleted > 0 ? (previousCompleted / stats.total) * 100 : 0;
+      const previousStep = Math.floor(previousPercentage / 10) * 10;
+
+      if (stats.completed === stats.total) {
+        sendUpdateToServer("completed", stats);
+      } else if (currentStep > previousStep) {
+        setTimeout(() => sendUpdateToServer("running", stats), 0);
+      }
+    }
+  }, [stats]);
+
   const executeRequests = async (bees: BeeRequest[], config: TestConfig) => {
     try {
       // Usar o timeout configurado pelo servidor, ou 100ms como padrão
-      const delayBetweenRequests = config.timeoutBetweenRequests || 100;
+      const delayBetweenRequests = config.timeoutBetweenRequests;
 
       // Executar todas as requisições com delays configurados
       const promises = bees.map((bee, index) =>
@@ -170,15 +189,6 @@ export default function ClientPage() {
 
       await Promise.all(promises);
       setIsRunning(false);
-
-      // Enviar atualização final para o servidor
-      setTimeout(() => {
-        setStats((currentStats) => {
-          // Usar setTimeout para garantir que o ref foi atualizado
-          setTimeout(() => sendUpdateToServer("completed", currentStats), 0);
-          return currentStats;
-        });
-      }, 500); // Pequeno delay para garantir que stats foram atualizados
     } catch (error) {
       // Se todas as requisições foram canceladas, não é um erro real
       if (error instanceof Error && error.name === "AbortError") {
@@ -255,10 +265,10 @@ export default function ClientPage() {
       const endTime = Date.now();
       const responseTime = endTime - startTime;
 
-      console.log("Response:", response);
-      console.log("Status:", response.status);
-      console.log("Type:", response.type);
-      console.log("CORS Error:", corsError);
+      // console.log("Response:", response);
+      // console.log("Status:", response.status);
+      // console.log("Type:", response.type);
+      // console.log("CORS Error:", corsError);
 
       let actualStatus = response.status;
       let isSuccess = true;
@@ -299,8 +309,6 @@ export default function ClientPage() {
             completed: prev.completed + 1,
             successful: prev.successful + 1,
           };
-          // Enviar atualização para o servidor de forma assíncrona
-          setTimeout(() => sendUpdateToServer("running", newStats), 0);
           return newStats;
         });
       } else {
@@ -328,8 +336,7 @@ export default function ClientPage() {
             completed: prev.completed + 1,
             failed: prev.failed + 1,
           };
-          // Enviar atualização para o servidor de forma assíncrona
-          setTimeout(() => sendUpdateToServer("running", newStats), 0);
+
           return newStats;
         });
       }
@@ -380,8 +387,6 @@ export default function ClientPage() {
           completed: prev.completed + 1,
           failed: prev.failed + 1,
         };
-        // Enviar atualização para o servidor de forma assíncrona
-        setTimeout(() => sendUpdateToServer("running", newStats), 0);
         return newStats;
       });
     }
@@ -518,7 +523,7 @@ export default function ClientPage() {
                 </div>
                 <div className={styles.configItem}>
                   <label>Timeout entre Requisições:</label>
-                  <span>{testConfig.timeoutBetweenRequests || 100}ms</span>
+                  <span>{testConfig.timeoutBetweenRequests}ms</span>
                 </div>
                 <div className={styles.configItem}>
                   <label>Status:</label>
