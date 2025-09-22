@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Cores principais
 $primary-color: #de5d41;
 $secondary-color: #000000;
@@ -105,13 +107,13 @@ $tablet: 1024px;
   min-width: 140px;
 
   &:hover:not(:disabled) {
-    background: darken($bg-color, 10%);
+    background: color.adjust($bg-color, $lightness: -10%);
     transform: translateY(-2px);
   }
 
   &:disabled {
     background: $gray-medium;
-    color: lighten($gray-medium, 20%);
+    color: color.adjust($gray-medium, $lightness: 20%);
     cursor: not-allowed;
     transform: none;
   }
