@@ -22,6 +22,10 @@ export default function ServerPage() {
     useState<number>(100);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [password, setPassword] = useState<string>("");
+  const [authToken, setAuthToken] = useState<string>("");
+  const [loginError, setLoginError] = useState<string>("");
 
   // Monitorar clientes via polling em vez de SSE
   useEffect(() => {
@@ -30,7 +34,16 @@ export default function ServerPage() {
     // Função para buscar status dos clientes
     const fetchClientsStatus = async () => {
       try {
-        const response = await fetch("/api/server");
+        const response = await fetch("/api/server", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
         setClients(
           data.clients.map((client: any) => ({
@@ -42,19 +55,116 @@ export default function ServerPage() {
       } catch (error) {
         console.error("Erro ao buscar status dos clientes:", error);
         setIsConnected(false);
+
+        // Se erro de autenticação, fazer logout
+        if (error instanceof Error && error.message.includes("401")) {
+          handleLogout();
+        }
       }
     };
 
-    // Buscar status inicial
-    fetchClientsStatus();
+    // Buscar status inicial apenas se autenticado
+    if (authToken) {
+      fetchClientsStatus();
 
-    // Polling a cada 2 segundos
-    const interval = setInterval(fetchClientsStatus, 2000);
+      // Polling a cada 2 segundos
+      const interval = setInterval(fetchClientsStatus, 2000);
 
-    return () => {
-      clearInterval(interval);
-    };
+      return () => {
+        clearInterval(interval);
+      };
+    }
+  }, [authToken]);
+
+  // Verificar autenticação ao carregar
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      validateToken(token);
+    }
   }, []);
+
+  const validateToken = async (token: string) => {
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "validate",
+          token: token,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        setAuthToken(token);
+        localStorage.setItem("authToken", token);
+      } else {
+        localStorage.removeItem("authToken");
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error("Erro ao validar token:", error);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "login",
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        setAuthToken(data.token);
+        setPassword("");
+        localStorage.setItem("authToken", data.token);
+      } else {
+        setLoginError(data.message || "Senha incorreta");
+      }
+    } catch (error) {
+      console.error("Erro no login:", error);
+      setLoginError("Erro de conexão");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (authToken) {
+        await fetch("/api/auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            action: "logout",
+            token: authToken,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error("Erro no logout:", error);
+    } finally {
+      setIsAuthenticated(false);
+      setAuthToken("");
+      localStorage.removeItem("authToken");
+    }
+  };
 
   const startTest = async () => {
     if (
@@ -75,7 +185,10 @@ export default function ServerPage() {
     try {
       await fetch("/api/server", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
         body: JSON.stringify({
           type: "start_test",
           config: {
@@ -95,7 +208,10 @@ export default function ServerPage() {
     try {
       await fetch("/api/server", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
         body: JSON.stringify({ type: "stop_test" }),
       });
     } catch (error) {
@@ -108,7 +224,10 @@ export default function ServerPage() {
     try {
       await fetch("/api/server", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
         body: JSON.stringify({ type: "reset_test" }),
       });
     } catch (error) {
@@ -141,22 +260,74 @@ export default function ServerPage() {
     0
   );
 
+  // Tela de login
+  if (!isAuthenticated) {
+    return (
+      <div className={styles.loginContainer}>
+        <div className={styles.loginCard}>
+          <div className={styles.loginHeader}>
+            <h1>🐝 Swarm Server</h1>
+            <p>Acesso restrito ao painel de controle</p>
+          </div>
+
+          <form onSubmit={handleLogin} className={styles.loginForm}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="password">Senha de acesso:</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite a senha"
+                required
+                className={styles.passwordInput}
+              />
+            </div>
+
+            {loginError && (
+              <div className={styles.loginError}>⚠️ {loginError}</div>
+            )}
+
+            <button
+              type="submit"
+              className={styles.loginButton}
+              disabled={!password.trim()}
+            >
+              🔓 Entrar
+            </button>
+          </form>
+
+          <div className={styles.loginFooter}>
+            <small>Sistema de teste de carga distribuído</small>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <h1>🐝 Swarm - Servidor de Controle</h1>
-        <div className={styles.connectionStatus}>
-          <span
-            className={`${styles.status} ${
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>🐝 Swarm Server</h1>
+          <div
+            className={`${styles.connectionStatus} ${
               isConnected ? styles.connected : styles.disconnected
             }`}
           >
             {isConnected ? "🟢 Conectado" : "🔴 Desconectado"}
-          </span>
+          </div>
+        </div>
+
+        <div className={styles.headerRight}>
+          <span className={styles.userInfo}>Autenticado</span>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            🚪 Sair
+          </button>
         </div>
       </header>
 
-      <div className={styles.mainContent}>
+      <div className={styles.content}>
         {/* Painel de Configuração */}
         <section className={styles.configPanel}>
           <h2>⚙️ Configuração</h2>

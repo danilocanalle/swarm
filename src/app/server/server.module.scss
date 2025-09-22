@@ -1,5 +1,134 @@
 @import "../../styles/variables.scss";
 
+// === LOGIN STYLES ===
+
+.loginContainer {
+  min-height: 100vh;
+  background: $background-gradient;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-medium;
+}
+
+.loginCard {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: $border-radius-large;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: $spacing-xlarge;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.loginHeader {
+  text-align: center;
+  margin-bottom: $spacing-large;
+
+  h1 {
+    color: white;
+    font-size: $font-size-xlarge;
+    font-weight: 700;
+    margin: 0 0 $spacing-small 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    font-size: $font-size-small;
+  }
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-medium;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-small;
+
+  label {
+    color: white;
+    font-weight: 600;
+    font-size: $font-size-small;
+  }
+}
+
+.passwordInput {
+  padding: $spacing-medium;
+  border-radius: $border-radius-medium;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: $font-size-medium;
+  transition: all 0.3s ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+  }
+}
+
+.loginButton {
+  padding: $spacing-medium $spacing-large;
+  background: $primary-color;
+  color: $gray-dark;
+  border: none;
+  border-radius: $border-radius-medium;
+  font-weight: 700;
+  font-size: $font-size-medium;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: $spacing-small;
+
+  &:hover:not(:disabled) {
+    background: lighten($primary-color, 10%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.loginError {
+  background: rgba($error-color, 0.2);
+  color: $error-color;
+  padding: $spacing-medium;
+  border-radius: $border-radius-medium;
+  border: 1px solid rgba($error-color, 0.3);
+  font-size: $font-size-small;
+  text-align: center;
+}
+
+.loginFooter {
+  text-align: center;
+  margin-top: $spacing-large;
+  padding-top: $spacing-medium;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  small {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: $font-size-xsmall;
+  }
+}
+
+// === HEADER STYLES (AUTHENTICATED) ===
+
 .container {
   min-height: 100vh;
   background: $background-gradient;
@@ -13,6 +142,18 @@
   align-items: center;
   margin-bottom: $spacing-large;
 
+  .headerLeft {
+    display: flex;
+    align-items: center;
+    gap: $spacing-medium;
+  }
+
+  .headerRight {
+    display: flex;
+    align-items: center;
+    gap: $spacing-medium;
+  }
+
   h1 {
     color: white;
     font-size: $font-size-xlarge;
@@ -22,32 +163,52 @@
   }
 
   .connectionStatus {
-    .status {
+    @include status-badge($success-color);
+    font-weight: 600;
+
+    &.connected {
       @include status-badge($success-color);
-      font-weight: 600;
+    }
 
-      &.connected {
-        @include status-badge($success-color);
-      }
+    &.disconnected {
+      @include status-badge($error-color);
+      @include pulse-animation;
+    }
+  }
 
-      &.disconnected {
-        @include status-badge($error-color);
-        @include pulse-animation;
-      }
+  .userInfo {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: $font-size-small;
+    font-weight: 500;
+  }
+
+  .logoutButton {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: $spacing-small $spacing-medium;
+    border-radius: $border-radius-medium;
+    font-size: $font-size-small;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
     }
   }
 }
 
-.mainContent {
+.content {
   display: grid;
   gap: $spacing-large;
   grid-template-columns: 1fr;
+  grid-template-areas:
+    "config stats"
+    "clients clients";
 
   @media (min-width: $tablet) {
     grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "config stats"
-      "clients clients";
   }
 }
 
@@ -196,6 +357,7 @@
 .clientsPanel {
   @include glass-card;
   grid-column: 1 / -1;
+  grid-area: clients;
 
   h2 {
     margin: 0 0 $spacing-medium 0;
@@ -376,7 +538,7 @@
     }
   }
 
-  .mainContent {
+  .content {
     grid-template-columns: 1fr;
     grid-template-areas:
       "config"
