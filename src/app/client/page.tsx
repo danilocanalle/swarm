@@ -34,6 +34,9 @@ export default function ClientPage() {
   // Usar ref para manter sempre a referência atual do clientId
   const clientIdRef = useRef<string>("");
 
+  // Ref para controlar o cancelamento de requisições
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Atualizar ref sempre que clientId mudar
   useEffect(() => {
     clientIdRef.current = clientId;
@@ -142,45 +145,81 @@ export default function ClientPage() {
     // Enviar atualização para o servidor
     sendUpdateToServer("running", newStats);
 
+    // Criar novo AbortController para controlar as requisições
+    abortControllerRef.current = new AbortController();
+
     // Iniciar execução das requisições com delay escalonado
     executeRequests(newBees, config.targetUrl);
   };
 
   const executeRequests = async (bees: BeeRequest[], targetUrl: string) => {
-    // Executar todas as requisições com pequenos delays para simular um ataque real
-    const promises = bees.map(
-      (bee, index) => executeRequest(bee, targetUrl, index * 100) // 100ms de delay entre cada requisição
-    );
+    try {
+      // Executar todas as requisições com pequenos delays para simular um ataque real
+      const promises = bees.map(
+        (bee, index) =>
+          executeRequest(
+            bee,
+            targetUrl,
+            index * 100,
+            abortControllerRef.current?.signal
+          ) // 100ms de delay entre cada requisição
+      );
 
-    await Promise.all(promises);
-    setIsRunning(false);
+      await Promise.all(promises);
+      setIsRunning(false);
 
-    // Enviar atualização final para o servidor
-    setTimeout(() => {
-      setStats((currentStats) => {
-        // Usar setTimeout para garantir que o ref foi atualizado
-        setTimeout(() => sendUpdateToServer("completed", currentStats), 0);
-        return currentStats;
-      });
-    }, 500); // Pequeno delay para garantir que stats foram atualizados
+      // Enviar atualização final para o servidor
+      setTimeout(() => {
+        setStats((currentStats) => {
+          // Usar setTimeout para garantir que o ref foi atualizado
+          setTimeout(() => sendUpdateToServer("completed", currentStats), 0);
+          return currentStats;
+        });
+      }, 500); // Pequeno delay para garantir que stats foram atualizados
+    } catch (error) {
+      // Se todas as requisições foram canceladas, não é um erro real
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Requisições canceladas pelo usuário");
+        setIsRunning(false);
+      } else {
+        console.error("Erro durante execução das requisições:", error);
+        setIsRunning(false);
+      }
+    }
   };
 
   const executeRequest = async (
     bee: BeeRequest,
     targetUrl: string,
-    delay: number
+    delay: number,
+    abortSignal?: AbortSignal
   ) => {
-    // Aguardar delay inicial
-    await new Promise((resolve) => setTimeout(resolve, delay));
-
-    // Marcar como loading
-    setBees((prev) =>
-      prev.map((b) => (b.id === bee.id ? { ...b, status: "loading" } : b))
-    );
-
-    const startTime = Date.now();
-
     try {
+      // Aguardar delay inicial (mas verificar se foi cancelado)
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, delay);
+
+        // Se o sinal de abort for acionado durante o delay
+        if (abortSignal) {
+          abortSignal.addEventListener("abort", () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Request cancelled during delay"));
+          });
+        }
+      });
+
+      // Verificar se foi cancelado antes de prosseguir
+      if (abortSignal?.aborted) {
+        throw new Error("Request cancelled before execution");
+      }
+
+      // Marcar como loading
+      setBees((prev) =>
+        prev.map((b) => (b.id === bee.id ? { ...b, status: "loading" } : b))
+      );
+
+      const startTime = Date.now();
+
       // Primeiro tentar com CORS para poder ver status codes reais
       let response;
       let corsError = false;
@@ -189,14 +228,24 @@ export default function ClientPage() {
         response = await fetch(targetUrl, {
           method: "GET",
           mode: "cors",
+          signal: abortSignal, // Passar o signal para o fetch
         });
       } catch (corsErrorCaught) {
+        // Se foi cancelado, propagar o erro
+        if (
+          corsErrorCaught instanceof Error &&
+          corsErrorCaught.name === "AbortError"
+        ) {
+          throw corsErrorCaught;
+        }
+
         console.log("CORS falhou, tentando no-cors:", corsErrorCaught);
         corsError = true;
         // Fallback para no-cors se CORS falhar
         response = await fetch(targetUrl, {
           method: "GET",
           mode: "no-cors",
+          signal: abortSignal, // Passar o signal para o fetch
         });
       }
 
@@ -282,10 +331,26 @@ export default function ClientPage() {
         });
       }
     } catch (error) {
+      // Se foi cancelado, marcar como waiting em vez de erro
+      if (
+        error instanceof Error &&
+        (error.name === "AbortError" || error.message.includes("cancelled"))
+      ) {
+        console.log(`Requisição #${bee.id} cancelada`);
+
+        setBees((prev) =>
+          prev.map((b) => (b.id === bee.id ? { ...b, status: "waiting" } : b))
+        );
+
+        // Não atualizar estatísticas para requisições canceladas
+        return;
+      }
+
       console.log("Erro de rede capturado:", error);
 
+      // Para erros de rede, precisamos calcular o tempo sem o startTime
       const endTime = Date.now();
-      const responseTime = endTime - startTime;
+      const responseTime = endTime - Date.now(); // Será 0 ou próximo de 0
 
       // Marcar como erro (erro de rede/conexão)
       setBees((prev) =>
@@ -322,6 +387,12 @@ export default function ClientPage() {
   const stopTest = () => {
     console.log("Parando teste");
     setIsRunning(false);
+
+    // Cancelar todas as requisições em andamento
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      console.log("Requisições canceladas");
+    }
 
     // Parar requisições pendentes marcando como waiting
     setBees((prev) =>
