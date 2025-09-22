@@ -1,0 +1,115 @@
+// Cores principais
+$primary-color: #de5d41;
+$secondary-color: #000000;
+$success-color: #22c55e;
+$error-color: #ef4444;
+$warning-color: #f59e0b;
+$gray-light: #f8fafc;
+$gray-medium: #6b7280;
+$gray-dark: #374151;
+
+// Background gradiente compartilhado
+$background-gradient: linear-gradient(
+  135deg,
+  $primary-color 0%,
+  $secondary-color 100%
+);
+
+// Sombras
+$shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+$shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+// Bordas
+$border-radius: 15px;
+$border-radius-small: 8px;
+$border-radius-large: 20px;
+
+// Espaçamentos
+$spacing-small: 10px;
+$spacing-medium: 20px;
+$spacing-large: 30px;
+
+// Tipografia
+$font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-size-small: 0.8rem;
+$font-size-medium: 1rem;
+$font-size-large: 1.5rem;
+$font-size-xlarge: 2.5rem;
+
+// Breakpoints
+$mobile: 768px;
+$tablet: 1024px;
+
+// Animações
+@mixin pulse-animation {
+  animation: pulse 2s infinite;
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@mixin loading-pulse {
+  animation: loading-pulse 1.5s infinite;
+
+  @keyframes loading-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+}
+
+// Mixins utilitários
+@mixin glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: $border-radius;
+  padding: 25px;
+  box-shadow: $shadow-medium;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin status-badge($color) {
+  background: rgba($color, 0.2);
+  color: $color;
+  border: 1px solid $color;
+  padding: 8px 16px;
+  border-radius: $border-radius-large;
+  font-weight: 500;
+  font-size: $font-size-small;
+}
+
+@mixin button-style($bg-color) {
+  background: $bg-color;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: $border-radius-small;
+  font-size: $font-size-medium;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 140px;
+
+  &:hover:not(:disabled) {
+    background: darken($bg-color, 10%);
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: $gray-medium;
+    color: lighten($gray-medium, 20%);
+    cursor: not-allowed;
+    transform: none;
+  }
+}

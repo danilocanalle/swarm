@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Swarm - Sistema de Teste de Carga Distribuído
 
-## Getting Started
+O Swarm é um sistema de teste de carga distribuído que permite coordenar múltiplos clientes para realizar requisições simultâneas contra uma URL alvo. O sistema é composto por duas partes principais: um servidor de controle e clientes que executam as requisições.
 
-First, run the development server:
+## 🏗️ Arquitetura
+
+O projeto é uma aplicação Next.js única com duas páginas principais:
+
+### `/server` - Página do Servidor de Controle
+
+- Interface web para controle e monitoramento
+- Gerenciamento de conexões WebSocket com clientes
+- Configuração de parâmetros de teste
+- Visualização em tempo real do status dos clientes
+
+### `/client` - Página do Cliente de Execução
+
+- Interface que se conecta ao servidor via WebSocket
+- Executa requisições HTTP conforme comandos do servidor
+- Relatório de status (sucesso/erro) de volta ao servidor
+
+## ✨ Funcionalidades
+
+### Servidor
+
+- 📊 **Monitoramento de Clientes**: Exibe quantidade de clientes conectados
+- 🐝 **Configuração de "Abelhas"**: Define quantas requisições cada cliente deve fazer
+- 🎯 **URL Alvo**: Configuração da URL que será testada
+- ▶️ **Controle de Execução**: Botão para iniciar o teste de carga
+- 📈 **Feedback em Tempo Real**: Box individual para cada cliente mostrando o status
+
+### Cliente
+
+- 🔌 **Conexão WebSocket**: Aguarda e mantém conexão com o servidor
+- 🎨 **Interface Dinâmica**: Layout muda após estabelecer conexão
+- 📦 **Visualização de Tarefas**: Boxes representando cada requisição a ser feita
+- ⏳ **Estados Visuais**: Loading, sucesso e erro para cada requisição
+- 📡 **Comunicação Bidirecional**: Envia feedback para o servidor
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- Node.js 18+
+- npm/yarn/pnpm
+
+### Aplicação
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse as páginas:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Servidor**: `http://localhost:3000/server`
+- **Cliente**: `http://localhost:3000/client`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔧 Tecnologias Utilizadas
 
-## Learn More
+- **Frontend**: Next.js, React, TypeScript
+- **Comunicação**: WebSockets
+- **Styling**: CSS Modules / Tailwind CSS
+- **Build**: Next.js Build System
 
-To learn more about Next.js, take a look at the following resources:
+## 📋 Fluxo de Funcionamento
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Inicialização**: Aplicação Next.js é iniciada
+2. **Acesso às Páginas**: Usuários acessam `/server` e `/client` em navegadores diferentes
+3. **Conexão**: Clientes se conectam ao servidor via WebSocket
+4. **Configuração**: Operador define parâmetros na página do servidor:
+   - Número de "abelhas" (requisições) por cliente
+   - URL alvo para teste
+5. **Distribuição**: Servidor envia configuração para todos os clientes conectados
+6. **Execução**: Servidor dispara comando de início
+7. **Monitoramento**: Interface mostra progresso em tempo real
+8. **Relatório**: Resultados consolidados são exibidos
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 Casos de Uso
 
-## Deploy on Vercel
+- Teste de carga em APIs
+- Verificação de performance de serviços web
+- Simulação de tráfego distribuído
+- Monitoramento de disponibilidade
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔮 Próximos Passos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [x] Criação da página `/server` com interface de controle
+- [x] Criação da página `/client` com interface de execução
+- [x] Implementação do servidor (API Routes)
+- [x] Sistema de comunicação entre páginas via WebSocket
+- [x] Interface do cliente com estados visuais
+- [ ] Sistema de relatórios e métricas
+- [ ] Configurações avançadas de teste
+
+---
+
+**Desenvolvido por**: Danilo Canalle
+**Licença**: MIT

@@ -1,0 +1,527 @@
+@import "../../styles/variables.scss";
+
+.container {
+  min-height: 100vh;
+  background: $background-gradient;
+  padding: $spacing-medium;
+  font-family: $font-family;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-large;
+
+  h1 {
+    color: white;
+    font-size: $font-size-xlarge;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .clientInfo {
+    display: flex;
+    align-items: center;
+    gap: $spacing-medium;
+
+    .connectionStatus {
+      .status {
+        @include status-badge($success-color);
+        font-weight: 600;
+
+        &.connected {
+          @include status-badge($success-color);
+        }
+
+        &.disconnected {
+          @include status-badge($error-color);
+          @include pulse-animation;
+        }
+      }
+    }
+
+    .clientId {
+      span {
+        @include status-badge($gray-light);
+        font-family: "Monaco", "Consolas", monospace;
+        font-size: $font-size-small;
+      }
+    }
+  }
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-large;
+}
+
+// Estado de espera (aguardando comandos)
+.waitingState {
+  @include glass-card;
+  text-align: center;
+  padding: $spacing-large * 2;
+  max-width: 600px;
+  margin: 0 auto;
+
+  .waitingIcon {
+    font-size: 4rem;
+    margin-bottom: $spacing-medium;
+    @include pulse-animation;
+  }
+
+  h2 {
+    margin: 0 0 $spacing-medium 0;
+    color: $gray-dark;
+    font-size: $font-size-large;
+    font-weight: 600;
+  }
+
+  p {
+    color: $gray-medium;
+    font-size: $font-size-medium;
+    margin-bottom: $spacing-large;
+    line-height: 1.6;
+  }
+
+  .instructions {
+    background: rgba($primary-color, 0.1);
+    border: 1px solid rgba($primary-color, 0.2);
+    border-radius: $border-radius-small;
+    padding: $spacing-medium;
+    text-align: left;
+
+    p {
+      margin: 0 0 $spacing-small 0;
+      font-weight: 600;
+      color: $gray-dark;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: $spacing-medium;
+
+      li {
+        color: $gray-medium;
+        margin-bottom: 8px;
+        line-height: 1.5;
+
+        code {
+          background: rgba($primary-color, 0.2);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: "Monaco", "Consolas", monospace;
+          color: $primary-color;
+          font-weight: 600;
+          font-size: $font-size-small;
+        }
+      }
+    }
+  }
+}
+
+// Estado de teste (executando)
+.testState {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-large;
+}
+
+// Exibição da configuração
+.configDisplay {
+  @include glass-card;
+
+  h2 {
+    margin: 0 0 $spacing-medium 0;
+    color: $gray-dark;
+    font-size: $font-size-large;
+    font-weight: 600;
+  }
+
+  .configInfo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: $spacing-medium;
+
+    .configItem {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      label {
+        font-weight: 600;
+        color: $gray-medium;
+        font-size: $font-size-small;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      span {
+        font-size: $font-size-medium;
+        color: $gray-dark;
+        font-weight: 500;
+        word-break: break-all;
+
+        &.running {
+          color: $warning-color;
+          font-weight: 600;
+          @include loading-pulse;
+        }
+
+        &.idle {
+          color: $gray-medium;
+        }
+      }
+    }
+  }
+}
+
+// Painel de estatísticas
+.statsPanel {
+  @include glass-card;
+
+  h2 {
+    margin: 0 0 $spacing-medium 0;
+    color: $gray-dark;
+    font-size: $font-size-large;
+    font-weight: 600;
+  }
+
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: $spacing-small;
+
+    .statCard {
+      background: rgba($primary-color, 0.1);
+      border: 1px solid rgba($primary-color, 0.2);
+      border-radius: $border-radius-small;
+      padding: $spacing-medium;
+      text-align: center;
+      transition: all 0.3s;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-light;
+      }
+
+      .statNumber {
+        display: block;
+        font-size: $font-size-large;
+        font-weight: 700;
+        color: $primary-color;
+        margin-bottom: 4px;
+      }
+
+      .statLabel {
+        font-size: $font-size-small;
+        color: $gray-medium;
+        font-weight: 500;
+        line-height: 1.2;
+        display: block;
+      }
+    }
+  }
+}
+
+// Painel de abelhas
+.beesPanel {
+  @include glass-card;
+
+  h2 {
+    margin: 0 0 $spacing-medium 0;
+    color: $gray-dark;
+    font-size: $font-size-large;
+    font-weight: 600;
+  }
+
+  .beesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: $spacing-small;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 8px;
+
+    // Customização da scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba($gray-medium, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba($primary-color, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba($primary-color, 0.5);
+      }
+    }
+
+    .beeCard {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba($gray-medium, 0.2);
+      border-radius: $border-radius-small;
+      padding: $spacing-small;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-light;
+      }
+
+      // Estados das abelhas
+      &.waiting {
+        border-color: rgba($gray-medium, 0.3);
+
+        .beeStatus {
+          color: $gray-medium;
+        }
+      }
+
+      &.loading {
+        border-color: $warning-color;
+        @include loading-pulse;
+
+        .beeStatus {
+          color: $warning-color;
+          font-weight: 600;
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba($warning-color, 0.2) 50%,
+            transparent 100%
+          );
+          animation: loading-sweep 1.5s infinite;
+        }
+      }
+
+      &.success {
+        border-color: $success-color;
+        background: rgba($success-color, 0.05);
+
+        .beeStatus {
+          color: $success-color;
+          font-weight: 600;
+        }
+      }
+
+      &.error {
+        border-color: $error-color;
+        background: rgba($error-color, 0.05);
+
+        .beeStatus {
+          color: $error-color;
+          font-weight: 600;
+        }
+
+        &:hover {
+          animation: shake 0.5s ease-in-out;
+        }
+      }
+
+      .beeHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        .beeIcon {
+          font-size: 1.2rem;
+        }
+
+        .beeId {
+          font-size: $font-size-small;
+          font-weight: 600;
+          color: $gray-medium;
+          font-family: "Monaco", "Consolas", monospace;
+        }
+      }
+
+      .beeStatus {
+        font-size: $font-size-small;
+        font-weight: 500;
+        text-align: center;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .beeDetails {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: $font-size-small;
+
+        .responseTime {
+          color: $primary-color;
+          font-weight: 600;
+          text-align: center;
+        }
+
+        .statusCode {
+          color: $success-color;
+          font-weight: 600;
+          text-align: center;
+        }
+
+        .errorMessage {
+          color: $error-color;
+          font-weight: 500;
+          text-align: center;
+          cursor: help;
+          word-break: break-all;
+        }
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: $mobile) {
+  .container {
+    padding: $spacing-small;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: $spacing-small;
+    text-align: center;
+
+    h1 {
+      font-size: $font-size-large;
+    }
+
+    .clientInfo {
+      flex-direction: column;
+      gap: $spacing-small;
+    }
+  }
+
+  .waitingState {
+    padding: $spacing-large;
+
+    .waitingIcon {
+      font-size: 3rem;
+    }
+  }
+
+  .configDisplay .configInfo {
+    grid-template-columns: 1fr;
+    gap: $spacing-small;
+  }
+
+  .statsPanel .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .beesPanel .beesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    max-height: 50vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .beesPanel .beesGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+// Animações
+@keyframes loading-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+// Estados especiais para grid de abelhas
+.beesGrid.executing {
+  .beeCard.waiting {
+    opacity: 0.7;
+  }
+}
+
+// Melhorias de acessibilidade
+.container {
+  .beeCard:focus {
+    outline: 2px solid $primary-color;
+    outline-offset: 2px;
+  }
+}
+
+// Efeitos especiais para feedbacks visuais
+.beesPanel {
+  .beeCard.success {
+    animation: success-pulse 0.6s ease-out;
+  }
+
+  .beeCard.error {
+    animation: error-flash 0.6s ease-out;
+  }
+}
+
+@keyframes success-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba($success-color, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba($success-color, 0);
+  }
+}
+
+@keyframes error-flash {
+  0% {
+    background: rgba($error-color, 0.05);
+  }
+  50% {
+    background: rgba($error-color, 0.2);
+  }
+  100% {
+    background: rgba($error-color, 0.05);
+  }
+}
+
+// Estado de loading global
+.mainContent.loading {
+  .statCard .statNumber {
+    @include loading-pulse;
+  }
+}
