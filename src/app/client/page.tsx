@@ -238,7 +238,7 @@ export default function ClientPage() {
       let corsError = false;
 
       try {
-        response = await fetch(targetUrl, {
+        response = await fetch(`${targetUrl}?index=${bee.id}`, {
           method: "GET",
           mode: "cors",
           signal: abortSignal, // Passar o signal para o fetch
