@@ -26,16 +26,23 @@ O projeto é uma aplicação Next.js única com duas páginas principais:
 - 📊 **Monitoramento de Clientes**: Exibe quantidade de clientes conectados
 - 🐝 **Configuração de "Abelhas"**: Define quantas requisições cada cliente deve fazer
 - 🎯 **URL Alvo**: Configuração da URL que será testada
+- 🔄 **Métodos HTTP**: Suporte para requisições GET e POST
+- 📝 **Corpo da Requisição**: Campo para configurar payload JSON (somente POST)
+- 🎭 **Placeholders Faker**: Sistema de geração de dados dinâmicos usando Faker.js
 - ▶️ **Controle de Execução**: Botão para iniciar o teste de carga
 - 📈 **Feedback em Tempo Real**: Box individual para cada cliente mostrando o status
+- 🔐 **Sistema de Autenticação**: Proteção por senha para acesso ao painel de controle
 
 ### Cliente
 
-- � **Conexão EventSource**: Aguarda e mantém conexão SSE com o servidor
+- 🔌 **Conexão EventSource**: Aguarda e mantém conexão SSE com o servidor
 - 🎨 **Interface Dinâmica**: Layout muda após estabelecer conexão
 - 📦 **Visualização de Tarefas**: Boxes representando cada requisição a ser feita
 - ⏳ **Estados Visuais**: Loading, sucesso e erro para cada requisição
-- � **Comunicação Híbrida**: Recebe comandos via SSE, envia feedback via HTTP POST
+- 🔄 **Requisições Dinâmicas**: Executa tanto GET quanto POST conforme configuração
+- 🎭 **Processamento Faker**: Substitui placeholders por dados falsos únicos para cada requisição
+- 📊 **Exibição de Configuração**: Mostra método HTTP e corpo da requisição (se POST)
+- 💬 **Comunicação Híbrida**: Recebe comandos via SSE, envia feedback via HTTP POST
 - 🔁 **Reconexão Automática**: Reconecta automaticamente se a conexão cair
 
 ## 🚀 Como Executar
@@ -102,12 +109,78 @@ Esta combinação oferece o melhor dos dois mundos: simplicidade do SSE para com
 8. **Visualização**: Interface mostra progresso em tempo real
 9. **Relatório**: Resultados consolidados são exibidos
 
-## 🎯 Casos de Uso
+## � Placeholders Faker
 
-- Teste de carga em APIs
+O sistema suporta geração dinâmica de dados usando a biblioteca Faker.js. No corpo da requisição POST, você pode usar os seguintes placeholders:
+
+### 👤 Dados Pessoais
+
+- `FAKER.NAME` - Nome completo
+- `FAKER.FIRSTNAME` - Primeiro nome
+- `FAKER.LASTNAME` - Sobrenome
+- `FAKER.EMAIL` - Email
+- `FAKER.PHONE` - Telefone
+- `FAKER.JOB` - Profissão
+
+### 🏢 Empresa
+
+- `FAKER.COMPANY` - Nome da empresa
+- `FAKER.PRODUCT` - Nome do produto
+- `FAKER.PRICE` - Preço
+
+### 📍 Localização
+
+- `FAKER.ADDRESS` - Endereço
+- `FAKER.CITY` - Cidade
+- `FAKER.COUNTRY` - País
+- `FAKER.ZIPCODE` - CEP
+
+### 🔢 Dados Técnicos
+
+- `FAKER.UUID` - ID único
+- `FAKER.NUMBER` - Número inteiro
+- `FAKER.FLOAT` - Número decimal
+- `FAKER.BOOLEAN` - Verdadeiro/Falso
+- `FAKER.DATE` - Data
+
+### 💻 Internet
+
+- `FAKER.URL` - URL
+- `FAKER.USERNAME` - Nome de usuário
+- `FAKER.PASSWORD` - Senha
+- `FAKER.CREDITCARD` - Cartão de crédito
+
+### 📝 Texto
+
+- `FAKER.WORD` - Palavra
+- `FAKER.SENTENCE` - Frase
+- `FAKER.PARAGRAPH` - Parágrafo
+- `FAKER.COLOR` - Cor
+
+### Exemplo de Uso
+
+```json
+{
+  "_id": "FAKER.UUID",
+  "name": "FAKER.NAME",
+  "email": "FAKER.EMAIL",
+  "phone": "FAKER.PHONE",
+  "company": "FAKER.COMPANY",
+  "active": "FAKER.BOOLEAN",
+  "created_at": "FAKER.DATE"
+}
+```
+
+Cada cliente substituirá esses placeholders por valores únicos gerados pelo Faker, permitindo testes realistas com dados variados.
+
+## �🎯 Casos de Uso
+
+- Teste de carga em APIs com dados realistas
 - Verificação de performance de serviços web
-- Simulação de tráfego distribuído
+- Simulação de tráfego distribuído com payloads diversos
+- Teste de endpoints que requerem dados específicos
 - Monitoramento de disponibilidade
+- Teste de validação de dados de entrada
 
 ## 🔮 Próximos Passos
 
@@ -117,9 +190,17 @@ Esta combinação oferece o melhor dos dois mundos: simplicidade do SSE para com
 - [x] Sistema de comunicação entre páginas via EventSource + HTTP POST
 - [x] Interface do cliente com estados visuais
 - [x] Arquitetura híbrida de comunicação (SSE + HTTP)
+- [x] Sistema de autenticação para o servidor
+- [x] Suporte para métodos GET e POST
+- [x] Sistema de placeholders Faker para geração de dados dinâmicos
+- [x] Interface de ajuda com placeholders disponíveis
 - [ ] Sistema de relatórios e métricas avançadas
-- [ ] Configurações avançadas de teste
+- [ ] Headers customizáveis
+- [ ] Configurações avançadas de teste (timeouts, retry)
 - [ ] Dashboard de histórico de testes
+- [ ] Exportação de resultados (CSV/JSON)
+- [ ] Suporte a outros métodos HTTP (PUT, DELETE, PATCH)
+- [ ] Templates de corpo de requisição salvos
 
 ---
 

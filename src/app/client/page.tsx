@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { faker } from "@faker-js/faker";
 import styles from "./client.module.scss";
 
 interface BeeRequest {
@@ -16,7 +17,59 @@ interface BeeRequest {
 interface TestConfig {
   beeCount: number;
   targetUrl: string;
+  httpMethod: "GET" | "POST";
+  requestBody?: string;
   timeoutBetweenRequests: number;
+}
+
+// Função para processar placeholders do Faker
+function processFakerPlaceholders(template: string): string {
+  if (!template) return template;
+
+  // Mapeamento de placeholders para funções do Faker
+  const fakerMap: { [key: string]: () => any } = {
+    "FAKER.NAME": () => faker.person.fullName(),
+    "FAKER.FIRSTNAME": () => faker.person.firstName(),
+    "FAKER.LASTNAME": () => faker.person.lastName(),
+    "FAKER.EMAIL": () => faker.internet.email(),
+    "FAKER.PHONE": () => faker.phone.number(),
+    "FAKER.ADDRESS": () => faker.location.streetAddress(),
+    "FAKER.CITY": () => faker.location.city(),
+    "FAKER.COUNTRY": () => faker.location.country(),
+    "FAKER.ZIPCODE": () => faker.location.zipCode(),
+    "FAKER.COMPANY": () => faker.company.name(),
+    "FAKER.JOB": () => faker.person.jobTitle(),
+    "FAKER.UUID": () => faker.string.uuid(),
+    "FAKER.NUMBER": () => faker.number.int({ min: 1, max: 1000 }),
+    "FAKER.FLOAT": () =>
+      faker.number.float({ min: 0, max: 100, fractionDigits: 2 }),
+    "FAKER.BOOLEAN": () => faker.datatype.boolean(),
+    "FAKER.DATE": () => faker.date.recent().toISOString(),
+    "FAKER.WORD": () => faker.lorem.word(),
+    "FAKER.SENTENCE": () => faker.lorem.sentence(),
+    "FAKER.PARAGRAPH": () => faker.lorem.paragraph(),
+    "FAKER.URL": () => faker.internet.url(),
+    "FAKER.USERNAME": () => faker.internet.username(),
+    "FAKER.PASSWORD": () => faker.internet.password(),
+    "FAKER.CREDITCARD": () => faker.finance.creditCardNumber(),
+    "FAKER.PRICE": () => faker.commerce.price(),
+    "FAKER.PRODUCT": () => faker.commerce.productName(),
+    "FAKER.COLOR": () => faker.color.human(),
+    "FAKER.IMAGE": () => faker.image.url(),
+  };
+
+  let processedTemplate = template;
+
+  // Substituir todos os placeholders
+  Object.entries(fakerMap).forEach(([placeholder, generator]) => {
+    const regex = new RegExp(`${placeholder}`, "g");
+    processedTemplate = processedTemplate.replace(regex, () => {
+      const value = generator();
+      return typeof value === "string" ? `${value}` : JSON.stringify(value);
+    });
+  });
+
+  return processedTemplate;
 }
 
 export default function ClientPage() {
@@ -181,7 +234,7 @@ export default function ClientPage() {
       const promises = bees.map((bee, index) =>
         executeRequest(
           bee,
-          config.targetUrl,
+          config,
           index * delayBetweenRequests,
           abortControllerRef.current?.signal
         )
@@ -203,7 +256,7 @@ export default function ClientPage() {
 
   const executeRequest = async (
     bee: BeeRequest,
-    targetUrl: string,
+    config: TestConfig,
     delay: number,
     abortSignal?: AbortSignal
   ) => {
@@ -233,16 +286,35 @@ export default function ClientPage() {
 
       const startTime = Date.now();
 
+      // Configurar opções da requisição baseado na configuração
+      const requestOptions: RequestInit = {
+        method: config.httpMethod,
+        mode: "cors",
+        signal: abortSignal,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      // Adicionar corpo da requisição se for POST
+      if (config.httpMethod === "POST" && config.requestBody) {
+        // Processar placeholders do Faker no corpo da requisição
+        const processedBody = processFakerPlaceholders(config.requestBody);
+        requestOptions.body = processedBody;
+      }
+
+      // URL com parâmetro de índice
+      const requestUrl =
+        config.httpMethod === "GET"
+          ? `${config.targetUrl}?index=${bee.id}`
+          : config.targetUrl;
+
       // Primeiro tentar com CORS para poder ver status codes reais
       let response;
       let corsError = false;
 
       try {
-        response = await fetch(`${targetUrl}?index=${bee.id}`, {
-          method: "GET",
-          mode: "cors",
-          signal: abortSignal, // Passar o signal para o fetch
-        });
+        response = await fetch(requestUrl, requestOptions);
       } catch (corsErrorCaught) {
         // Se foi cancelado, propagar o erro
         if (
@@ -255,11 +327,11 @@ export default function ClientPage() {
         console.log("CORS falhou, tentando no-cors:", corsErrorCaught);
         corsError = true;
         // Fallback para no-cors se CORS falhar
-        response = await fetch(targetUrl, {
-          method: "GET",
-          mode: "no-cors",
-          signal: abortSignal, // Passar o signal para o fetch
-        });
+        const fallbackOptions = {
+          ...requestOptions,
+          mode: "no-cors" as RequestMode,
+        };
+        response = await fetch(config.targetUrl, fallbackOptions);
       }
 
       const endTime = Date.now();
@@ -521,6 +593,22 @@ export default function ClientPage() {
                   <label>URL Alvo:</label>
                   <span>{testConfig.targetUrl}</span>
                 </div>
+                <div className={styles.configItem}>
+                  <label>Método HTTP:</label>
+                  <span className={styles.httpMethod}>
+                    {testConfig.httpMethod}
+                  </span>
+                </div>
+                {testConfig.httpMethod === "POST" && testConfig.requestBody && (
+                  <div className={styles.configItem}>
+                    <label>Corpo da Requisição:</label>
+                    <span className={styles.requestBody}>
+                      {testConfig.requestBody.length > 100
+                        ? `${testConfig.requestBody.substring(0, 100)}...`
+                        : testConfig.requestBody}
+                    </span>
+                  </div>
+                )}
                 <div className={styles.configItem}>
                   <label>Timeout entre Requisições:</label>
                   <span>{testConfig.timeoutBetweenRequests}ms</span>

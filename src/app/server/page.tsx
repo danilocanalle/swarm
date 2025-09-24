@@ -18,6 +18,8 @@ export default function ServerPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [beeCount, setBeeCount] = useState<number>(10);
   const [targetUrl, setTargetUrl] = useState<string>("");
+  const [httpMethod, setHttpMethod] = useState<"GET" | "POST">("GET");
+  const [requestBody, setRequestBody] = useState<string>("");
   const [timeoutBetweenRequests, setTimeoutBetweenRequests] =
     useState<number>(100);
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -194,6 +196,8 @@ export default function ServerPage() {
           config: {
             beeCount,
             targetUrl,
+            httpMethod,
+            requestBody: httpMethod === "POST" ? requestBody : undefined,
             timeoutBetweenRequests,
           },
         }),
@@ -359,6 +363,116 @@ export default function ServerPage() {
             </div>
 
             <div className={styles.inputGroup}>
+              <label htmlFor="httpMethod">Método HTTP:</label>
+              <select
+                id="httpMethod"
+                value={httpMethod}
+                onChange={(e) =>
+                  setHttpMethod(e.target.value as "GET" | "POST")
+                }
+                disabled={isRunning}
+                className={styles.selectInput}
+              >
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+              </select>
+            </div>
+
+            {httpMethod === "POST" && (
+              <div className={styles.inputGroup}>
+                <label htmlFor="requestBody">Corpo da Requisição (JSON):</label>
+                <textarea
+                  id="requestBody"
+                  value={requestBody}
+                  onChange={(e) => setRequestBody(e.target.value)}
+                  placeholder='{"exemplo": "dados", "teste": true}'
+                  disabled={isRunning}
+                  className={styles.textareaInput}
+                  rows={4}
+                />
+                <small>
+                  Digite o JSON que será enviado no corpo da requisição POST.
+                  Use placeholders FAKER para gerar dados dinâmicos.
+                </small>
+
+                <details className={styles.fakerHelp}>
+                  <summary>📝 Placeholders Faker Disponíveis</summary>
+                  <div className={styles.fakerGrid}>
+                    <div className={styles.fakerCategory}>
+                      <h4>👤 Pessoa</h4>
+                      <code>FAKER.NAME</code> - Nome completo
+                      <br />
+                      <code>FAKER.FIRSTNAME</code> - Primeiro nome
+                      <br />
+                      <code>FAKER.LASTNAME</code> - Sobrenome
+                      <br />
+                      <code>FAKER.EMAIL</code> - Email
+                      <br />
+                      <code>FAKER.PHONE</code> - Telefone
+                      <br />
+                      <code>FAKER.JOB</code> - Profissão
+                    </div>
+
+                    <div className={styles.fakerCategory}>
+                      <h4>🏢 Empresa</h4>
+                      <code>FAKER.COMPANY</code> - Nome da empresa
+                      <br />
+                      <code>FAKER.PRODUCT</code> - Nome do produto
+                      <br />
+                      <code>FAKER.PRICE</code> - Preço
+                    </div>
+
+                    <div className={styles.fakerCategory}>
+                      <h4>📍 Localização</h4>
+                      <code>FAKER.ADDRESS</code> - Endereço
+                      <br />
+                      <code>FAKER.CITY</code> - Cidade
+                      <br />
+                      <code>FAKER.COUNTRY</code> - País
+                      <br />
+                      <code>FAKER.ZIPCODE</code> - CEP
+                    </div>
+
+                    <div className={styles.fakerCategory}>
+                      <h4>🔢 Dados</h4>
+                      <code>FAKER.UUID</code> - ID único
+                      <br />
+                      <code>FAKER.NUMBER</code> - Número inteiro
+                      <br />
+                      <code>FAKER.FLOAT</code> - Número decimal
+                      <br />
+                      <code>FAKER.BOOLEAN</code> - Verdadeiro/Falso
+                      <br />
+                      <code>FAKER.DATE</code> - Data
+                    </div>
+
+                    <div className={styles.fakerCategory}>
+                      <h4>💻 Internet</h4>
+                      <code>FAKER.URL</code> - URL
+                      <br />
+                      <code>FAKER.USERNAME</code> - Nome de usuário
+                      <br />
+                      <code>FAKER.PASSWORD</code> - Senha
+                      <br />
+                      <code>FAKER.CREDITCARD</code> - Cartão
+                    </div>
+
+                    <div className={styles.fakerCategory}>
+                      <h4>📝 Texto</h4>
+                      <code>FAKER.WORD</code> - Palavra
+                      <br />
+                      <code>FAKER.SENTENCE</code> - Frase
+                      <br />
+                      <code>FAKER.PARAGRAPH</code> - Parágrafo
+                      <br />
+                      <code>FAKER.COLOR</code> - Cor
+                    </div>
+                  </div>
+                </details>
+              </div>
+            )}
+
+            <div className={styles.inputGroup}>
               <label htmlFor="timeoutBetweenRequests">
                 Timeout entre Requisições (ms):
               </label>
@@ -386,7 +500,7 @@ export default function ServerPage() {
                 disabled={isRunning || !isConnected || !targetUrl}
                 className={styles.startButton}
               >
-                Soltar abelhas
+                🐝 Soltar abelhas
               </button>
 
               <button
