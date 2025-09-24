@@ -40,7 +40,7 @@ function processFakerPlaceholders(template: string): string {
     "FAKER.COMPANY": () => faker.company.name(),
     "FAKER.JOB": () => faker.person.jobTitle(),
     "FAKER.UUID": () => faker.string.uuid(),
-    "FAKER.NUMBER": () => faker.number.int({ min: 1, max: 1000 }),
+    "FAKER.NUMBER": () => faker.number.int({ min: 1, max: 10000 }),
     "FAKER.FLOAT": () =>
       faker.number.float({ min: 0, max: 100, fractionDigits: 2 }),
     "FAKER.BOOLEAN": () => faker.datatype.boolean(),
