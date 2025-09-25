@@ -334,13 +334,23 @@ export default function ClientPage() {
       startTime = Date.now();
 
       // Configurar opções da requisição baseado na configuração
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+
+      // Adicionar header para ngrok se a URL for do ngrok
+      if (
+        config.targetUrl.includes("ngrok.io") ||
+        config.targetUrl.includes("ngrok-free.app")
+      ) {
+        headers["ngrok-skip-browser-warning"] = "true";
+      }
+
       const requestOptions: RequestInit = {
         method: config.httpMethod,
         mode: "cors",
         signal: abortSignal,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       };
 
       // Adicionar corpo da requisição se for POST
