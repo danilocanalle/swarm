@@ -83,6 +83,7 @@ export default function ClientPage() {
     completed: 0,
     successful: 0,
     failed: 0,
+    averageResponseTime: 0,
   });
 
   // Usar ref para manter sempre a referência atual do clientId
@@ -91,10 +92,20 @@ export default function ClientPage() {
   // Ref para controlar o cancelamento de requisições
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Array para armazenar os tempos de resposta das requisições completadas
+  const responseTimesRef = useRef<number[]>([]);
+
   // Atualizar ref sempre que clientId mudar
   useEffect(() => {
     clientIdRef.current = clientId;
   }, [clientId]);
+
+  // Função para calcular tempo médio
+  const calculateAverageResponseTime = (responseTimes: number[]): number => {
+    if (responseTimes.length === 0) return 0;
+    const sum = responseTimes.reduce((acc, time) => acc + time, 0);
+    return Math.round(sum / responseTimes.length);
+  };
 
   // Função para enviar atualizações para o servidor
   const sendUpdateToServer = async (status: string, requests: any) => {
@@ -179,6 +190,9 @@ export default function ClientPage() {
     setTestConfig(config);
     setIsRunning(true);
 
+    // Resetar tempos de resposta
+    responseTimesRef.current = [];
+
     // Criar abelhas (boxes) baseado na configuração
     const newBees: BeeRequest[] = Array.from(
       { length: config.beeCount },
@@ -194,6 +208,7 @@ export default function ClientPage() {
       completed: 0,
       successful: 0,
       failed: 0,
+      averageResponseTime: 0,
     };
     setStats(newStats);
 
@@ -260,6 +275,8 @@ export default function ClientPage() {
     delay: number,
     abortSignal?: AbortSignal
   ) => {
+    let startTime: number = 0;
+
     try {
       // Aguardar delay inicial (mas verificar se foi cancelado)
       await new Promise((resolve, reject) => {
@@ -284,7 +301,7 @@ export default function ClientPage() {
         prev.map((b) => (b.id === bee.id ? { ...b, status: "loading" } : b))
       );
 
-      const startTime = Date.now();
+      startTime = Date.now();
 
       // Configurar opções da requisição baseado na configuração
       const requestOptions: RequestInit = {
@@ -375,11 +392,16 @@ export default function ClientPage() {
         );
 
         // Atualizar estatísticas - sucesso
+        responseTimesRef.current.push(responseTime);
         setStats((prev) => {
+          const averageResponseTime = calculateAverageResponseTime(
+            responseTimesRef.current
+          );
           const newStats = {
             ...prev,
             completed: prev.completed + 1,
             successful: prev.successful + 1,
+            averageResponseTime,
           };
           return newStats;
         });
@@ -402,11 +424,16 @@ export default function ClientPage() {
         );
 
         // Atualizar estatísticas - erro
+        responseTimesRef.current.push(responseTime);
         setStats((prev) => {
+          const averageResponseTime = calculateAverageResponseTime(
+            responseTimesRef.current
+          );
           const newStats = {
             ...prev,
             completed: prev.completed + 1,
             failed: prev.failed + 1,
+            averageResponseTime,
           };
 
           return newStats;
@@ -430,9 +457,9 @@ export default function ClientPage() {
 
       console.log("Erro de rede capturado:", error);
 
-      // Para erros de rede, precisamos calcular o tempo sem o startTime
+      // Para erros de rede, calcular o tempo desde o início da requisição
       const endTime = Date.now();
-      const responseTime = endTime - Date.now(); // Será 0 ou próximo de 0
+      const responseTime = startTime ? endTime - startTime : 0;
 
       // Marcar como erro (erro de rede/conexão)
       setBees((prev) =>
@@ -453,11 +480,16 @@ export default function ClientPage() {
       );
 
       // Atualizar estatísticas - erro de rede
+      responseTimesRef.current.push(responseTime);
       setStats((prev) => {
+        const averageResponseTime = calculateAverageResponseTime(
+          responseTimesRef.current
+        );
         const newStats = {
           ...prev,
           completed: prev.completed + 1,
           failed: prev.failed + 1,
+          averageResponseTime,
         };
         return newStats;
       });
@@ -496,11 +528,15 @@ export default function ClientPage() {
     setIsRunning(false);
     setBees([]);
     setTestConfig(null);
+
+    // Resetar tempos de resposta
+    responseTimesRef.current = [];
     const resetStats = {
       total: 0,
       completed: 0,
       successful: 0,
       failed: 0,
+      averageResponseTime: 0,
     };
     setStats(resetStats);
 
@@ -641,6 +677,12 @@ export default function ClientPage() {
                 <div className={styles.statCard}>
                   <span className={styles.statNumber}>{stats.failed}</span>
                   <span className={styles.statLabel}>Falhas</span>
+                </div>
+                <div className={styles.statCard}>
+                  <span className={styles.statNumber}>
+                    {stats.averageResponseTime}ms
+                  </span>
+                  <span className={styles.statLabel}>Tempo Médio</span>
                 </div>
               </div>
             </section>

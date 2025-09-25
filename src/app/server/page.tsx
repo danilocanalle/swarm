@@ -12,6 +12,7 @@ interface Client {
     successful: number;
     failed: number;
   };
+  averageResponseTime: number;
 }
 
 export default function ServerPage() {
@@ -52,6 +53,7 @@ export default function ServerPage() {
             id: client.id,
             status: client.status,
             requests: client.requests,
+            averageResponseTime: client.averageResponseTime || 0,
           }))
         );
       } catch (error) {
@@ -243,6 +245,7 @@ export default function ServerPage() {
         ...client,
         status: "connected",
         requests: { total: 0, completed: 0, successful: 0, failed: 0 },
+        averageResponseTime: 0,
       }))
     );
   };
@@ -263,6 +266,18 @@ export default function ServerPage() {
     (sum, client) => sum + client.requests.failed,
     0
   );
+
+  // Calcular tempo médio geral ponderado
+  const totalAverageResponseTime = clients.reduce((total, client) => {
+    if (client.requests.completed > 0) {
+      return total + client.averageResponseTime * client.requests.completed;
+    }
+    return total;
+  }, 0);
+  const globalAverageResponseTime =
+    completedRequests > 0
+      ? Math.round(totalAverageResponseTime / completedRequests)
+      : 0;
 
   // Tela de login
   if (!isAuthenticated) {
@@ -547,6 +562,13 @@ export default function ServerPage() {
               <span className={styles.statNumber}>{failedRequests}</span>
               <span className={styles.statLabel}>Falhas</span>
             </div>
+
+            <div className={styles.statCard}>
+              <span className={styles.statNumber}>
+                {globalAverageResponseTime}ms
+              </span>
+              <span className={styles.statLabel}>Tempo Médio</span>
+            </div>
           </div>
         </section>
 
@@ -604,6 +626,9 @@ export default function ServerPage() {
                       </span>
                       <span className={styles.error}>
                         Falhas: {client.requests.failed}
+                      </span>
+                      <span className={styles.responseTime}>
+                        Tempo Médio: {client.averageResponseTime}ms
                       </span>
                     </div>
                   </div>

@@ -33,6 +33,7 @@ export const connectedClients = new Map<
       successful: number;
       failed: number;
     };
+    averageResponseTime: number;
   }
 >();
 

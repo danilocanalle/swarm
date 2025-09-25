@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
           successful: 0,
           failed: 0,
         },
+        averageResponseTime: 0,
       });
 
       // Enviar ID do cliente
@@ -95,6 +96,7 @@ export async function POST(request: NextRequest) {
             successful: 0,
             failed: 0,
           },
+          averageResponseTime: 0,
         });
       });
 
@@ -122,6 +124,7 @@ export async function POST(request: NextRequest) {
             successful: 0,
             failed: 0,
           },
+          averageResponseTime: 0,
         });
       });
 
@@ -142,6 +145,9 @@ export async function POST(request: NextRequest) {
             ...clientData.requests,
             ...body.data.requests,
           },
+          averageResponseTime:
+            body.data.requests?.averageResponseTime ||
+            clientData.averageResponseTime,
         });
         console.log(
           `Status atualizado para cliente ${body.clientId}:`,

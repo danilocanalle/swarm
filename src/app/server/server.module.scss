@@ -621,6 +621,12 @@
               background: rgba($error-color, 0.1);
               color: $error-color;
             }
+
+            &.responseTime {
+              background: rgba($primary-color, 0.1);
+              color: $primary-color;
+              font-weight: 600;
+            }
           }
         }
       }
