@@ -29,6 +29,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Enviar PING para todos os clientes conectados para verificar se estão realmente online
+  broadcastToAllClients({
+    type: "ping",
+    timestamp: Date.now(),
+  });
+
   return Response.json({
     connectedClients: connectedClients.size,
     clients: Array.from(connectedClients.values()),

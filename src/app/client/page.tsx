@@ -162,6 +162,32 @@ export default function ClientPage() {
     };
   }, []);
 
+  // Função para lidar com ping do servidor
+  const handlePing = async (data: any) => {
+    console.log("PING recebido do servidor, enviando PONG...");
+
+    const currentClientId = clientIdRef.current;
+    if (!currentClientId) {
+      console.log("ClientId não disponível para enviar PONG");
+      return;
+    }
+
+    try {
+      await fetch("/api/sse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "pong",
+          clientId: currentClientId,
+          timestamp: data.timestamp, // Reenviar o timestamp do ping original
+        }),
+      });
+      console.log("PONG enviado com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar PONG:", error);
+    }
+  };
+
   const handleServerMessage = (data: any) => {
     console.log("Mensagem recebida:", data);
 
@@ -180,6 +206,10 @@ export default function ClientPage() {
 
       case "reset_test":
         resetTest();
+        break;
+
+      case "ping":
+        handlePing(data);
         break;
     }
   };

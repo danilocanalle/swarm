@@ -6,6 +6,7 @@ interface Message {
   type: string;
   clientId?: string;
   data?: any;
+  timestamp?: number;
 }
 
 export function broadcastToAllClients(message: Message) {
@@ -34,6 +35,7 @@ export const connectedClients = new Map<
       failed: number;
     };
     averageResponseTime: number;
+    lastPong?: Date;
   }
 >();
 

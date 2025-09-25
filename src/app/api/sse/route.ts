@@ -156,6 +156,18 @@ export async function POST(request: NextRequest) {
       }
       return Response.json({ success: true });
 
+    case "pong":
+      // Cliente respondeu ao ping - atualizar timestamp de última resposta
+      const pongClientData = connectedClients.get(body.clientId);
+      if (pongClientData) {
+        connectedClients.set(body.clientId, {
+          ...pongClientData,
+          lastPong: new Date(),
+        });
+        // console.log(`PONG recebido do cliente ${body.clientId}`);
+      }
+      return Response.json({ success: true });
+
     case "get_status":
       return Response.json({
         connectedClients: connections.size,
