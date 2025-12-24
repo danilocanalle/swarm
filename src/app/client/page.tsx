@@ -136,6 +136,16 @@ export default function ClientPage() {
 
   // Conectar ao SSE quando o componente monta
   useEffect(() => {
+    // Flag para indicar que o fechamento foi intencional (refresh/navegação)
+    let isUnloading = false;
+
+    const handleBeforeUnload = () => {
+      isUnloading = true;
+    };
+
+    // Adicionar listener para detectar quando a página está sendo descarregada
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
     const eventSource = new EventSource("/api/sse");
 
     eventSource.onopen = () => {
@@ -153,11 +163,18 @@ export default function ClientPage() {
     };
 
     eventSource.onerror = (error) => {
+      // Ignorar erros se a página está sendo descarregada (F5, navegação, etc.)
+      if (isUnloading) {
+        return;
+      }
+
       console.error("Erro no SSE:", error);
       setIsConnected(false);
     };
 
     return () => {
+      isUnloading = true;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       eventSource.close();
     };
   }, []);
